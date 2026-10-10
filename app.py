@@ -3,14 +3,14 @@ import pandas as pd
 
 # Page Config
 st.set_page_config(
-    page_title="Chloride Sensor Analysis", layout="wide"
+    page_title="Chloride Sensor Analysis", layout="width"
 )
 
 # App Title and Header
-st.title("S.H.M.S.I (smart health onitoring system interface)")
+st.title("S.H.M.S.I (smart health monitoring system interface)")
 st.markdown(
     "**FJSL Project in Miersch, Luxembourg:** Digital quantification of chloride via solid-phase matrix"
-    " and $L^*a^*b^*$ computer vision.(!TEST SUBJECT!)"
+    " and $L^*a^*b^*$ computer vision. (!TEST SUBJECT!)"
 )
 
 # Sidebar navi
