@@ -1,53 +1,58 @@
-import streamlit as st
+import numpy as np
 import pandas as pd
+import streamlit as st
 
-# Page Config
+# Page configuration
 st.set_page_config(
-    page_title="Chloride Sensor Analysis", layout="width"
+    page_title="Colorimetric pH Sensor Analysis",
+    page_icon="🧪",
+    layout="centered",
 )
 
-# App Title and Header
-st.title("S.H.M.S.I (smart health monitoring system interface)")
+st.title("🧪 Colorimetric pH Sensor Analysis Tool")
 st.markdown(
-    "**FJSL Project in Miersch, Luxembourg:** Digital quantification of chloride via solid-phase matrix"
-    " and $L^*a^*b^*$ computer vision. (!TEST SUBJECT!)"
+    "Analyzing biosensor calibration, sigmoidal fits, and Henderson-Hasselbalch validation."
 )
 
-# Sidebar navi
-st.sidebar.header("Navigate")
-app_mode = st.sidebar.selectbox(
-    "Choose a section:", ["Sensor Analysis (Live Upload)", "Dataset (112 Runs)"]
+# Sidebar controls for simulation/input
+st.sidebar.header("Calibration Parameters")
+pka_input = st.sidebar.slider("Estimated pKa", 5.0, 7.0, 5.83, 0.01)
+
+# Generate sample synthetic calibration data if none is uploaded
+st.subheader("1. Sigmoidal Henderson-Hasselbalch Response Curve")
+
+# Simulated pH range around the target biomedical window
+ph_vals = np.linspace(4.0, 8.0, 100)
+
+
+# Sigmoidal response model (Hill-type / Henderson-Hasselbalch form)
+def sigmoidal_response(pH, pka):
+    # Normalized response from 0 to 1 based on pKa
+    return 1 / (1 + 10 ** (pka - pH))
+
+
+response_vals = sigmoidal_response(ph_vals, pka_input)
+
+# Display data table
+chart_data = pd.DataFrame(
+    {"pH": ph_vals, "Calculated Normalized Absorbance/RGB": response_vals}
 )
 
-if app_mode == "Sensor Analysis (Live Upload)":
-  st.header("Image Processing Pipeline")
-  st.write(
-      "Upload a photograph of your tested sensor strip to extract colorimetry"
-      " values and estimate chloride concentration."
-  )
+st.line_chart(chart_data, x="pH")
 
-  uploaded_file = st.file_uploader(
-      "Choose a sensor image Here", type=["jpg, jpeg, png"]
-  )
+st.success(
+    f"Model successfully loaded! Current established $pK_a$: **{pka_input}**"
+)
 
-  if uploaded_file is not None:
-    # Display uploaded image
-    st.image(uploaded_file, caption="Uploaded Sensor's colourmetric response strip here", use_column_width=True)
+# Quick Calculator Section
+st.subheader("2. Quick pH Predictor from Sensor Reading")
+user_reading = st.slider(
+    "Sensor Normalized RGB/Intensity Value", 0.0, 1.0, 0.5, 0.01
+)
 
-    # L*A*B FUNCTION
-    st.info("Processing image and calculating L*a*b* values...")or("Buffering....")
-
-    # Example output simulation
-    st.success("Estimated Chloride Concentration: **-- mg/L**")
-
-elif app_mode == "Dataset (112 Runs)":
-  st.header("Experimental Dataset Overview")
-  st.write(
-      "Here is the summary of your 112 experimental runs used for calibration"
-      " and validation."
-  )
-
-  st.metric(label="Total Completed Runs(Hardware)", value="112")
-  st.metric(label="Estimated Cost Per Sensor", value="~€0.47")
-  st.metric(label="Total porposal of runs(Software)", value="160")
-  st.metric(label="Total amount oof equations used in this software", value="3")
+if user_reading > 0 and user_reading < 1:
+    # Inverse Henderson-Hasselbalch calculation
+    calculated_pH = pka_input - np.log10((1 / user_reading) - 1)
+    st.metric(label="Predicted pH", value=round(calculated_pH, 2))
+else:
+    st.info("Adjust the sensor reading slider to calculate corresponding pH.")
